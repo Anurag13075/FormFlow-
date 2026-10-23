@@ -61,8 +61,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-wispr-ink leading-[1.05]">
-            Don't type, <br />
-            <span className="italic font-normal">just speak.</span>
+            Don't type,  forms <br />
+            <span className="italic font-normal">just speak them .</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-wispr-ink-muted max-w-xl mx-auto font-sans leading-relaxed">
