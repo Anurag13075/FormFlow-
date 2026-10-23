@@ -7,6 +7,7 @@ import { WisprCommandBar } from "@/components/WisprCommandBar";
 import { UniversalFormScanner } from "@/components/UniversalFormScanner";
 import { RealProfileVault } from "@/components/RealProfileVault";
 import { BookmarkletGuide } from "@/components/BookmarkletGuide";
+import { ExtensionInstallGuide } from "@/components/ExtensionInstallGuide";
 import { SubmissionAudit } from "@/components/SubmissionAudit";
 import { AtsRadar } from "@/components/AtsRadar";
 import { SpokenPdfGenerator } from "@/components/SpokenPdfGenerator";
@@ -18,8 +19,8 @@ import { sleep } from "@/lib/utils";
 import confetti from "canvas-confetti";
 
 export default function Home() {
-  // Navigation View: "landing" | "studio" | "vault" | "bookmarklet"
-  const [currentView, setCurrentView] = useState<"landing" | "studio" | "vault" | "bookmarklet">("studio");
+  // Navigation View: "landing" | "studio" | "vault" | "extension" | "bookmarklet"
+  const [currentView, setCurrentView] = useState<"landing" | "studio" | "vault" | "extension" | "bookmarklet">("studio");
 
   // Real user profile stored in localStorage
   const [userProfile, setUserProfile] = useState<RealUserProfile>(initialRealUserProfile);
@@ -241,7 +242,14 @@ export default function Home() {
         </main>
       )}
 
-      {/* View 4: Universal Bookmarklet (Runs directly on tally.so or any live website) */}
+      {/* View 4: Universal Chrome / Edge Extension (Works on ANY Webpage on the Internet) */}
+      {currentView === "extension" && (
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          <ExtensionInstallGuide />
+        </main>
+      )}
+
+      {/* View 5: Universal Bookmarklet (Runs directly on tally.so or any live website) */}
       {currentView === "bookmarklet" && (
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
           <BookmarkletGuide />

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, ShieldCheck, Globe, Bookmark, ArrowRight, Cpu, Key, Check } from "lucide-react";
+import { Sparkles, ShieldCheck, Globe, Bookmark, ArrowRight, Cpu, Key, Chrome } from "lucide-react";
 import { GROQ_MODELS } from "@/lib/groqService";
 
 interface NavbarProps {
-  currentView: "landing" | "studio" | "vault" | "bookmarklet";
-  setCurrentView: (view: "landing" | "studio" | "vault" | "bookmarklet") => void;
+  currentView: "landing" | "studio" | "vault" | "extension" | "bookmarklet";
+  setCurrentView: (view: "landing" | "studio" | "vault" | "extension" | "bookmarklet") => void;
   userName: string;
   groqApiKey: string;
   onSaveGroqApiKey: (key: string, model: string) => void;
@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden sm:inline-flex items-center p-1 rounded-full bg-wispr-sand/70 border border-wispr-border shadow-inner">
             <button
               onClick={() => setCurrentView("landing")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
                 currentView === "landing"
                   ? "bg-wispr-ink text-wispr-cream shadow-tactile"
                   : "text-wispr-ink-muted hover:text-wispr-ink"
@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setCurrentView("studio")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
                 currentView === "studio"
                   ? "bg-wispr-ink text-wispr-cream shadow-tactile"
                   : "text-wispr-ink-muted hover:text-wispr-ink"
@@ -85,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setCurrentView("vault")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
                 currentView === "vault"
                   ? "bg-wispr-ink text-wispr-cream shadow-tactile"
                   : "text-wispr-ink-muted hover:text-wispr-ink"
@@ -95,14 +95,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              onClick={() => setCurrentView("extension")}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 flex items-center space-x-1 ${
+                currentView === "extension"
+                  ? "bg-wispr-ink text-wispr-cream shadow-tactile"
+                  : "text-wispr-ink-muted hover:text-wispr-ink"
+              }`}
+            >
+              <Chrome className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Extension (Any Form)</span>
+            </button>
+
+            <button
               onClick={() => setCurrentView("bookmarklet")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
                 currentView === "bookmarklet"
                   ? "bg-wispr-ink text-wispr-cream shadow-tactile"
                   : "text-wispr-ink-muted hover:text-wispr-ink"
               }`}
             >
-              Any-Web Bookmarklet
+              Bookmarklet
             </button>
           </div>
 
@@ -121,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Cpu className={`w-3.5 h-3.5 ${isGroqActive ? "text-emerald-600 animate-pulse" : "text-wispr-stone"}`} />
               <span className="hidden md:inline">
-                {isGroqActive ? "Groq Llama 3.3 Active" : "Connect Groq AI"}
+                {isGroqActive ? "Groq Llama 3.3 Active" : "Connect Groq (gsk_)"}
               </span>
             </button>
 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FormFlow — Wispr AI Form Agent</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 360px;
+      background-color: #F8F6EB;
+      color: #141413;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      padding: 16px;
+      user-select: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #DCD5C4;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #154032;
+      color: #F8F6EB;
+    }
+    .status-card {
+      background: #FFFFFF;
+      border: 1px solid #DCD5C4;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #54524C;
+      margin-bottom: 4px;
+      display: block;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #DCD5C4;
+      background: #FFFFFF;
+      font-size: 12px;
+      color: #141413;
+      font-family: inherit;
+      margin-bottom: 10px;
+    }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #141413;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      background: #DDD0F7;
+      color: #141413;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1.5px solid #141413;
+      box-shadow: 0 2px 0 0 #141413;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 0 0 #141413;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .footer-note {
+      font-size: 10px;
+      color: #7D7A73;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <span>||| Flow</span>
+      <span class="badge">Universal AI</span>
+    </div>
+    <span style="font-size:11px; color:#154032; font-weight:600;">Groq Llama 3.3</span>
+  </div>
+
+  <div class="status-card">
+    <div class="status-indicator">
+      <div class="dot"></div>
+      <span id="fieldCountText">Scanning active webpage...</span>
+    </div>
+    <p id="pageUrlText" style="color:#7D7A73; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+      Current tab
+    </p>
+  </div>
+
+  <label class="label">Hold Wispr Flow & Dictate Instructions:</label>
+  <textarea id="promptInput" rows="3" placeholder="e.g. 'Apply with my primary profile, set notice period to 15 days, and attach my resume'"></textarea>
+
+  <label class="label">Groq API Key (gsk_...):</label>
+  <input type="password" id="groqKeyInput" placeholder="gsk_..." />
+
+  <button id="fillBtn" class="btn">
+    <span>⚡ Fill This Live Web Page</span>
+  </button>
+
+  <p class="footer-note">
+    Works on Workday, Lever, Google Forms, Tally, or any website on the internet.
+  </p>
+
+  <script src="popup.js"></script>
+</body>
+</html>
