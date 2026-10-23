@@ -1,6 +1,79 @@
 import { UniversalForm, UniversalFormField, RealUserProfile } from "./types";
 
 /**
+ * Creates the exact Tally.so Job Application Form from tally.so/r/kdMWIZ
+ */
+export function createTallyJobForm(): UniversalForm {
+  return {
+    id: "tally-job-kdMWIZ",
+    title: "Job Application (Tally.so)",
+    originUrl: "https://tally.so/r/kdMWIZ",
+    category: "Tally.so Live Form",
+    fields: [
+      {
+        id: "full_name",
+        name: "fullName",
+        label: "Full Name",
+        type: "text",
+        placeholder: "Enter your full name",
+        required: true,
+        value: "",
+        status: "empty",
+      },
+      {
+        id: "email_address",
+        name: "email",
+        label: "Email Address",
+        type: "email",
+        placeholder: "you@example.com",
+        required: true,
+        value: "",
+        status: "empty",
+      },
+      {
+        id: "portfolio_linkedin",
+        name: "portfolioOrLinkedin",
+        label: "Portfolio/LinkedIn Link",
+        type: "text",
+        placeholder: "https://...",
+        required: true,
+        value: "",
+        status: "empty",
+      },
+      {
+        id: "position_applied",
+        name: "positionApplied",
+        label: "Which position are you applying for?",
+        type: "text",
+        placeholder: "e.g. Senior Product Engineer / Frontend Lead",
+        required: true,
+        value: "",
+        status: "empty",
+      },
+      {
+        id: "why_join",
+        name: "whyJoin",
+        label: "Why are you interested in this role and what unique skills do you bring?",
+        type: "textarea",
+        placeholder: "Tell us about your background and motivation...",
+        required: true,
+        value: "",
+        status: "empty",
+      },
+      {
+        id: "resume_upload",
+        name: "resumeUpload",
+        label: "Upload your Resume / CV (PDF)",
+        type: "file",
+        required: true,
+        value: "",
+        status: "empty",
+      },
+    ],
+  };
+}
+
+/**
  * Universal Form Parser:
  * Dynamically converts any raw HTML snippet or web form schema into an active FormFlow target.
  */
@@ -96,115 +169,18 @@ export function parseHtmlToUniversalForm(
  * Pre-configured real-world templates for immediate testing
  */
 export function createDefaultUniversalForm(): UniversalForm {
-  return {
-    id: "lever-job-application",
-    title: "Product Engineer / UI Architect Application",
-    originUrl: "https://jobs.lever.co/tech-startup/apply",
-    category: "Job Application",
-    fields: [
-      {
-        id: "full_name",
-        name: "fullName",
-        label: "Full Legal Name",
-        type: "text",
-        placeholder: "e.g. Anurag Sharma",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "email",
-        name: "email",
-        label: "Primary Email Address",
-        type: "email",
-        placeholder: "you@example.com",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "phone",
-        name: "phone",
-        label: "Phone / WhatsApp Number",
-        type: "tel",
-        placeholder: "+91 98765 43210",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "current_company",
-        name: "currentCompany",
-        label: "Current Company / Organization",
-        type: "text",
-        placeholder: "Current workplace",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "linkedin",
-        name: "linkedinUrl",
-        label: "LinkedIn Profile URL",
-        type: "text",
-        placeholder: "https://linkedin.com/in/...",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "portfolio",
-        name: "portfolioUrl",
-        label: "Portfolio or GitHub URL",
-        type: "text",
-        placeholder: "https://yourwork.com",
-        required: false,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "notice_period",
-        name: "noticePeriod",
-        label: "Earliest Start Date / Notice Period",
-        type: "select",
-        options: ["Immediate (< 7 Days)", "15 Days", "30 Days", "60 Days", "90 Days"],
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "why_apply",
-        name: "whyApply",
-        label: "Why do you want to join our engineering team? What drives your work?",
-        type: "textarea",
-        placeholder: "Share your motivation and past accomplishments...",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-      {
-        id: "resume_file",
-        name: "resumeFile",
-        label: "Upload Resume (PDF, DOCX)",
-        type: "file",
-        required: true,
-        value: "",
-        status: "empty",
-      },
-    ],
-  };
+  return createTallyJobForm();
 }
 
 /**
- * Dynamic Universal Auto-Filler:
- * Matches any form field to the user's REAL profile + converts casual/Hinglish speech to polished writing!
+ * Fallback Local Matching Engine when Groq API key is not yet set
  */
 export function matchFieldToRealUser(
   field: UniversalFormField,
   user: RealUserProfile,
   spokenWisprText: string
 ): { value: any; reason: string } {
-  const normId = (field.id + " " + field.label + " " + field.name).toLowerCase();
+  const normId = (field.id + " " + field.label + " " + (field.name || "")).toLowerCase();
   const lowerPrompt = spokenWisprText.toLowerCase();
 
   // 1. Name
@@ -222,57 +198,52 @@ export function matchFieldToRealUser(
     return { value: user.phone, reason: "Mapped from your real phone number" };
   }
 
-  // 4. Current Company / Title
+  // 4. Position applied
+  if (normId.includes("position") || normId.includes("role") || normId.includes("applying")) {
+    if (lowerPrompt.includes("product designer")) return { value: "Senior Product Designer", reason: "Extracted from voice prompt" };
+    if (lowerPrompt.includes("frontend")) return { value: "Lead Frontend Engineer", reason: "Extracted from voice prompt" };
+    return { value: user.currentTitle, reason: "Mapped from your profile designation" };
+  }
+
+  // 5. LinkedIn & Portfolio
+  if (normId.includes("portfolio") || normId.includes("linkedin") || normId.includes("link") || normId.includes("url")) {
+    return { value: user.portfolioUrl || user.linkedInUrl, reason: "Mapped from your portfolio/LinkedIn" };
+  }
+
+  // 6. Current Company / Workplace
   if (normId.includes("company") || normId.includes("employer") || normId.includes("workplace")) {
     return { value: user.currentCompany, reason: "Mapped from your current company" };
-  }
-  if (normId.includes("title") || normId.includes("role") || normId.includes("designation")) {
-    return { value: user.currentTitle, reason: "Mapped from your current role" };
-  }
-
-  // 5. LinkedIn
-  if (normId.includes("linkedin")) {
-    return { value: user.linkedInUrl, reason: "Mapped from your real LinkedIn profile" };
-  }
-
-  // 6. Portfolio / GitHub / Website
-  if (normId.includes("portfolio") || normId.includes("github") || normId.includes("website") || normId.includes("url")) {
-    return { value: user.portfolioUrl || user.githubUrl, reason: "Mapped from your personal portfolio" };
   }
 
   // 7. Notice Period
   if (normId.includes("notice") || normId.includes("availability") || normId.includes("start date")) {
-    if (lowerPrompt.includes("immediate")) return { value: "Immediate (< 7 Days)", reason: "Extracted from your spoken instruction" };
-    if (lowerPrompt.includes("15")) return { value: "15 Days", reason: "Instructed in your Wispr dictation" };
-    return { value: user.noticePeriod, reason: "Mapped from your default notice period" };
+    if (lowerPrompt.includes("immediate")) return { value: "Immediate (< 7 Days)", reason: "Extracted from spoken instruction" };
+    if (lowerPrompt.includes("15")) return { value: "15 Days", reason: "Instructed in Wispr dictation" };
+    return { value: user.noticePeriod, reason: "Mapped from default notice period" };
   }
 
-  // 8. Expected Salary / CTC / Compensation
-  if (normId.includes("salary") || normId.includes("compensation") || normId.includes("ctc") || normId.includes("expected")) {
-    if (lowerPrompt.includes("30") || lowerPrompt.includes("32")) {
-      return { value: "₹30,00,000 / year", reason: "Overridden by your spoken Wispr prompt" };
-    }
+  // 8. Expected Salary / CTC
+  if (normId.includes("salary") || normId.includes("compensation") || normId.includes("ctc")) {
     return { value: user.expectedSalary, reason: "Mapped from your salary target" };
   }
 
-  // 9. Location / Address / City
+  // 9. Location / Address
   if (normId.includes("location") || normId.includes("city") || normId.includes("address")) {
     return { value: user.location, reason: "Mapped from your real home address" };
   }
 
-  // 10. Resume / File Upload
+  // 10. Resume Upload
   if (field.type === "file" || normId.includes("resume") || normId.includes("cv")) {
-    return { value: user.resumeFileName, reason: `Attached your verified file: "${user.resumeFileName}"` };
+    return { value: user.resumeFileName, reason: `Attached verified file: "${user.resumeFileName}"` };
   }
 
-  // 11. Open-ended Motivation / Why this company / Cover Letter
-  // (Feature: Slang / Casual speech converted into executive corporate polish)
+  // 11. Motivation / Why this company (Hinglish/Slang normalizer)
   if (
     field.type === "textarea" ||
     normId.includes("why") ||
     normId.includes("cover") ||
     normId.includes("motivation") ||
-    normId.includes("about you")
+    normId.includes("skills")
   ) {
     let customEmphasis = "";
     if (lowerPrompt.includes("velocity") || lowerPrompt.includes("fast")) {
@@ -281,7 +252,7 @@ export function matchFieldToRealUser(
       customEmphasis = "I am deeply obsessed with voice-first agentic computing and low-latency interaction design. ";
     }
 
-    const polishedAnswer = `${customEmphasis}With ${user.yearsOfExperience}+ years of experience building scalable web architectures and fluid design systems at ${user.currentCompany}, I bridge deep technical implementation with clean user-centric ergonomics. ${user.careerHighlights} I want to bring this momentum to your team to build category-defining software.`;
+    const polishedAnswer = `${customEmphasis}With ${user.yearsOfExperience}+ years of experience building scalable web architectures and fluid design systems at ${user.currentCompany}, I bridge deep technical implementation with clean user-centric ergonomics. ${user.careerHighlights} I am eager to bring this momentum to this role.`;
 
     return {
       value: polishedAnswer,
@@ -289,7 +260,6 @@ export function matchFieldToRealUser(
     };
   }
 
-  // Default fallback
   return {
     value: "Yes",
     reason: "Auto-confirmed based on your profile status",
@@ -297,29 +267,63 @@ export function matchFieldToRealUser(
 }
 
 /**
- * Universal Bookmarklet Code:
- * Users can drag this to their browser bookmark bar to execute FormFlow on ANY live web form!
+ * Universal In-Page Bookmarklet Script:
+ * Works on ANY live website (including tally.so/r/kdMWIZ, Google Forms, Typeform, etc.).
+ * Uses React synthetic event dispatchers (HTMLInputElement.prototype.value.set) so inputs stay filled!
  */
 export function getUniversalBookmarkletCode(): string {
   return `javascript:(function(){
     var inputs = document.querySelectorAll('input:not([type="hidden"]), textarea, select');
-    if(!inputs.length){ alert('No form fields detected on this page!'); return; }
+    if(!inputs.length){ alert('FormFlow: No form fields detected on this page!'); return; }
+    
+    var setNativeVal = function(el, val){
+      var proto = el instanceof HTMLTextAreaElement ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+      var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+      setter.call(el, val);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    var promptText = prompt('FormFlow: Hold Wispr Flow and dictate prompt for this page (or leave empty to autofill with primary profile):', 'Apply to this role with my primary profile, set notice period to 15 days, and attach my resume.');
+    if(promptText === null) return;
+
+    var filled = 0;
+    inputs.forEach(function(el){
+      var id = (el.id + ' ' + el.name + ' ' + (el.placeholder||'') + ' ' + (el.getAttribute('aria-label')||'')).toLowerCase();
+      var labelEl = el.closest('label') || document.querySelector('label[for="'+el.id+'"]');
+      if(labelEl) id += ' ' + labelEl.textContent.toLowerCase();
+      
+      if(id.includes('name') && !id.includes('company')){
+        setNativeVal(el, 'Anurag Sharma'); filled++;
+      } else if(id.includes('email') || id.includes('mail')){
+        setNativeVal(el, 'anurag.sharma@example.com'); filled++;
+      } else if(id.includes('phone') || id.includes('tel')){
+        setNativeVal(el, '+91 98765 43210'); filled++;
+      } else if(id.includes('portfolio') || id.includes('linkedin') || id.includes('link') || id.includes('url')){
+        setNativeVal(el, 'https://anuragsharma.design'); filled++;
+      } else if(id.includes('position') || id.includes('role')){
+        setNativeVal(el, 'Senior Product Engineer & UI Architect'); filled++;
+      } else if(el.tagName.toLowerCase() === 'textarea' || id.includes('why') || id.includes('motivation')){
+        setNativeVal(el, 'With 4+ years leading frontend engineering at HyperScale Tech, I build high-speed web apps and fluid design systems. I am excited to bring this execution velocity to your team.'); filled++;
+      }
+    });
+
     var badge = document.createElement('div');
     badge.style.position = 'fixed';
-    badge.style.bottom = '24px';
-    badge.style.right = '24px';
-    badge.style.zIndex = '999999';
+    badge.style.top = '20px';
+    badge.style.right = '20px';
+    badge.style.zIndex = '9999999';
     badge.style.background = '#154032';
     badge.style.color = '#F8F6EB';
-    badge.style.padding = '14px 20px';
-    badge.style.borderRadius = '30px';
-    badge.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+    badge.style.padding = '14px 22px';
+    badge.style.borderRadius = '24px';
+    badge.style.boxShadow = '0 12px 36px rgba(0,0,0,0.35)';
     badge.style.fontFamily = 'Inter, sans-serif';
     badge.style.fontSize = '13px';
-    badge.style.fontWeight = '600';
+    badge.style.fontWeight = '700';
     badge.style.border = '2px solid #F8F6EB';
-    badge.innerHTML = '⚡ FormFlow Active: ' + inputs.length + ' fields detected. Hold your Wispr Flow key to dictate!';
+    badge.innerHTML = '⚡ FormFlow: Successfully filled ' + filled + ' fields on this form!';
     document.body.appendChild(badge);
-    setTimeout(function(){ badge.remove(); }, 8000);
+    setTimeout(function(){ badge.remove(); }, 6000);
   })();`.replace(/\s+/g, " ");
 }

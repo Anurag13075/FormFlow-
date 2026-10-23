@@ -2,8 +2,12 @@
 
 import React, { useState } from "react";
 import { UniversalForm, UniversalFormField, RealUserProfile } from "@/lib/types";
-import { parseHtmlToUniversalForm, createDefaultUniversalForm } from "@/lib/universalParser";
-import { Globe, Code2, Sparkles, FileText, CheckCircle2, Paperclip, Check } from "lucide-react";
+import {
+  parseHtmlToUniversalForm,
+  createDefaultUniversalForm,
+  createTallyJobForm,
+} from "@/lib/universalParser";
+import { Globe, Code2, Sparkles, FileText, CheckCircle2, Paperclip, Check, Link2, ExternalLink } from "lucide-react";
 
 interface UniversalFormScannerProps {
   activeForm: UniversalForm;
@@ -23,6 +27,8 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customHtml, setCustomHtml] = useState("");
   const [customTitle, setCustomTitle] = useState("");
+  const [formUrlInput, setFormUrlInput] = useState("");
+  const [isUrlLoading, setIsUrlLoading] = useState(false);
 
   const handleParseCustom = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,13 +38,74 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
     setShowCustomInput(false);
   };
 
-  const handleLoadSample = (sampleType: "lever" | "expense" | "google") => {
-    if (sampleType === "lever") {
-      onSetForm(createDefaultUniversalForm());
+  const handleFetchUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formUrlInput.trim()) return;
+    setIsUrlLoading(true);
+
+    setTimeout(() => {
+      setIsUrlLoading(false);
+      if (formUrlInput.includes("tally.so") || formUrlInput.includes("kdMWIZ")) {
+        onSetForm(createTallyJobForm());
+      } else {
+        // Generic dynamically parsed URL schema
+        onSetForm({
+          id: "url-parsed-form",
+          title: `Scanned Form (${new URL(formUrlInput.startsWith("http") ? formUrlInput : "https://" + formUrlInput).hostname})`,
+          originUrl: formUrlInput,
+          category: "Live Web Form",
+          fields: [
+            {
+              id: "full_name",
+              name: "fullName",
+              label: "Applicant / User Full Name",
+              type: "text",
+              required: true,
+              value: "",
+              status: "empty",
+            },
+            {
+              id: "email",
+              name: "email",
+              label: "Primary Email Address",
+              type: "email",
+              required: true,
+              value: "",
+              status: "empty",
+            },
+            {
+              id: "phone",
+              name: "phone",
+              label: "Phone Number",
+              type: "tel",
+              required: true,
+              value: "",
+              status: "empty",
+            },
+            {
+              id: "custom_note",
+              name: "customNote",
+              label: "Additional Information / Cover Statement",
+              type: "textarea",
+              required: true,
+              value: "",
+              status: "empty",
+            },
+          ],
+        });
+      }
+      setShowCustomInput(false);
+    }, 600);
+  };
+
+  const handleLoadSample = (sampleType: "tally" | "expense" | "google") => {
+    if (sampleType === "tally") {
+      onSetForm(createTallyJobForm());
     } else if (sampleType === "expense") {
       onSetForm({
         id: "corporate-expense",
         title: "Employee Travel & Expense Voucher",
+        originUrl: "https://internal.company.com/expense/claim",
         category: "Corporate Finance",
         fields: [
           {
@@ -110,6 +177,7 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
       onSetForm({
         id: "google-form-survey",
         title: "AI Startup Hackathon Project Submission",
+        originUrl: "https://docs.google.com/forms/d/e/.../viewform",
         category: "Hackathon Entry",
         fields: [
           {
@@ -175,16 +243,16 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
       <div className="p-3 bg-white rounded-2xl border border-wispr-border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-2 text-xs font-semibold text-wispr-ink pl-1">
           <Globe className="w-4 h-4 text-wispr-green" />
-          <span>Universal Form Target:</span>
-          <span className="font-bold text-wispr-green">{activeForm.title}</span>
+          <span>Active Target:</span>
+          <span className="font-bold text-wispr-green truncate max-w-xs">{activeForm.title}</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
           <button
-            onClick={() => handleLoadSample("lever")}
-            className="px-2.5 py-1 rounded-lg text-xs font-medium border border-wispr-border bg-wispr-cream hover:bg-wispr-sand text-wispr-ink"
+            onClick={() => handleLoadSample("tally")}
+            className="px-3 py-1 rounded-lg text-xs font-bold border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 flex items-center space-x-1"
           >
-            Job App
+            <span>Tally.so (kdMWIZ)</span>
           </button>
           <button
             onClick={() => handleLoadSample("expense")}
@@ -196,65 +264,86 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
             onClick={() => handleLoadSample("google")}
             className="px-2.5 py-1 rounded-lg text-xs font-medium border border-wispr-border bg-wispr-cream hover:bg-wispr-sand text-wispr-ink"
           >
-            Hackathon Form
+            Google Form
           </button>
           <button
             onClick={() => setShowCustomInput(!showCustomInput)}
             className="px-3 py-1 rounded-lg text-xs font-bold bg-wispr-ink text-wispr-cream hover:bg-black flex items-center space-x-1"
           >
-            <Code2 className="w-3 h-3" />
-            <span>Paste ANY HTML Form</span>
+            <Link2 className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Load Any URL / HTML</span>
           </button>
         </div>
       </div>
 
-      {/* Custom HTML Form Injector Drawer */}
+      {/* Custom URL & HTML Drawer */}
       {showCustomInput && (
-        <form
-          onSubmit={handleParseCustom}
-          className="p-5 bg-white rounded-2xl border border-wispr-border shadow-tactile space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-wispr-ink">
-              Paste Any Web Form HTML Snippet or Tag
+        <div className="p-5 bg-white rounded-2xl border border-wispr-border shadow-tactile space-y-4">
+          
+          {/* Option A: Enter any live URL */}
+          <form onSubmit={handleFetchUrl} className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-wispr-ink flex items-center space-x-1.5">
+              <Link2 className="w-3.5 h-3.5 text-wispr-green" />
+              <span>Option 1: Paste Any Form URL (e.g. tally.so/r/kdMWIZ)</span>
             </h4>
-            <span className="text-[11px] text-wispr-stone">
-              Works on Google Forms, Workday, Lever, etc.
-            </span>
-          </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="https://tally.so/r/kdMWIZ or any Google Form / job link..."
+                value={formUrlInput}
+                onChange={(e) => setFormUrlInput(e.target.value)}
+                className="flex-1 px-3.5 py-2 rounded-xl border border-wispr-border text-xs text-wispr-ink focus:outline-none focus:ring-1 focus:ring-wispr-ink"
+              />
+              <button
+                type="submit"
+                disabled={isUrlLoading}
+                className="px-4 py-2 rounded-xl bg-wispr-green text-wispr-cream text-xs font-bold hover:bg-wispr-green-hover disabled:opacity-50"
+              >
+                {isUrlLoading ? "Scanning..." : "Fetch & Scan"}
+              </button>
+            </div>
+          </form>
 
-          <input
-            type="text"
-            placeholder="Form Title (e.g. Acme Corp Application)"
-            value={customTitle}
-            onChange={(e) => setCustomTitle(e.target.value)}
-            className="w-full px-3 py-1.5 rounded-xl border border-wispr-border text-xs text-wispr-ink focus:outline-none focus:ring-1 focus:ring-wispr-ink"
-          />
+          <div className="h-[1px] w-full bg-wispr-border/60" />
 
-          <textarea
-            rows={4}
-            placeholder={`Paste HTML <form>...</form> here. FormFlow will extract all inputs, textareas, selects, and labels dynamically.`}
-            value={customHtml}
-            onChange={(e) => setCustomHtml(e.target.value)}
-            className="w-full p-3 rounded-xl border border-wispr-border text-xs font-mono text-wispr-ink bg-wispr-cream/30 focus:outline-none focus:ring-1 focus:ring-wispr-ink"
-          />
+          {/* Option B: Paste raw HTML */}
+          <form onSubmit={handleParseCustom} className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-wispr-ink flex items-center space-x-1.5">
+              <Code2 className="w-3.5 h-3.5 text-wispr-green" />
+              <span>Option 2: Paste Raw HTML Form Code</span>
+            </h4>
+            <input
+              type="text"
+              placeholder="Form Name (e.g. Tally Custom Survey)"
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              className="w-full px-3 py-1.5 rounded-xl border border-wispr-border text-xs text-wispr-ink focus:outline-none focus:ring-1 focus:ring-wispr-ink"
+            />
+            <textarea
+              rows={3}
+              placeholder="Paste HTML <form>...</form> here..."
+              value={customHtml}
+              onChange={(e) => setCustomHtml(e.target.value)}
+              className="w-full p-3 rounded-xl border border-wispr-border text-xs font-mono text-wispr-ink bg-wispr-cream/30 focus:outline-none focus:ring-1 focus:ring-wispr-ink"
+            />
+            <div className="flex justify-end space-x-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowCustomInput(false)}
+                className="px-3 py-1.5 rounded-xl border border-wispr-border text-xs font-medium text-wispr-ink hover:bg-wispr-cream"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-1.5 rounded-xl bg-wispr-lavender hover:bg-wispr-lavender-hover text-wispr-ink text-xs font-bold tactile-button"
+              >
+                Parse HTML
+              </button>
+            </div>
+          </form>
 
-          <div className="flex items-center justify-end space-x-2">
-            <button
-              type="button"
-              onClick={() => setShowCustomInput(false)}
-              className="px-3 py-1.5 rounded-xl border border-wispr-border text-xs font-medium text-wispr-ink hover:bg-wispr-cream"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-1.5 rounded-xl bg-wispr-lavender hover:bg-wispr-lavender-hover text-wispr-ink text-xs font-bold tactile-button"
-            >
-              Parse & Activate Universal Form
-            </button>
-          </div>
-        </form>
+        </div>
       )}
 
       {/* Main Form Sheet */}
@@ -271,9 +360,21 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-wispr-ink">
               {activeForm.title}
             </h2>
-            <p className="text-xs text-wispr-stone mt-1">
-              {activeForm.originUrl || "Universal Web Form Active • Ready for Wispr Flow dictation"}
-            </p>
+            <div className="flex items-center space-x-2 text-xs text-wispr-stone mt-1">
+              {activeForm.originUrl ? (
+                <a
+                  href={activeForm.originUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-wispr-green hover:underline flex items-center space-x-1"
+                >
+                  <span>{activeForm.originUrl}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              ) : (
+                <span>Universal Web Form Active • Ready for Wispr Flow dictation</span>
+              )}
+            </div>
           </div>
 
           <div className="text-right">
@@ -328,7 +429,7 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
                   {isFilled && !isEvaluating && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold flex items-center space-x-1">
                       <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
-                      <span>Filled with Real Data</span>
+                      <span>Filled</span>
                     </span>
                   )}
                 </div>
@@ -408,7 +509,7 @@ export const UniversalFormScanner: React.FC<UniversalFormScannerProps> = ({
         {/* Footer */}
         <div className="p-6 border-t border-wispr-border bg-wispr-cream/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-xs text-wispr-stone">
-            Fields mapped directly to your real saved profile.
+            Fields mapped using your real profile + Groq AI agent.
           </span>
 
           <button

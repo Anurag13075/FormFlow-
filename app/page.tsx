@@ -12,30 +12,51 @@ import { AtsRadar } from "@/components/AtsRadar";
 import { SpokenPdfGenerator } from "@/components/SpokenPdfGenerator";
 import { UniversalForm, UniversalFormField, RealUserProfile } from "@/lib/types";
 import { loadUserProfile, saveUserProfile, initialRealUserProfile } from "@/lib/storage";
-import { createDefaultUniversalForm, matchFieldToRealUser } from "@/lib/universalParser";
+import { createTallyJobForm, matchFieldToRealUser } from "@/lib/universalParser";
+import { callGroqFormAgent } from "@/lib/groqService";
 import { sleep } from "@/lib/utils";
 import confetti from "canvas-confetti";
 
 export default function Home() {
   // Navigation View: "landing" | "studio" | "vault" | "bookmarklet"
-  const [currentView, setCurrentView] = useState<"landing" | "studio" | "vault" | "bookmarklet">("landing");
+  const [currentView, setCurrentView] = useState<"landing" | "studio" | "vault" | "bookmarklet">("studio");
 
   // Real user profile stored in localStorage
   const [userProfile, setUserProfile] = useState<RealUserProfile>(initialRealUserProfile);
 
-  // Active Universal Form
-  const [activeForm, setActiveForm] = useState<UniversalForm>(createDefaultUniversalForm());
+  // Active Universal Form initialized to Tally Job Application (kdMWIZ)
+  const [activeForm, setActiveForm] = useState<UniversalForm>(createTallyJobForm());
+
+  // Groq API Key and Model state
+  const [groqApiKey, setGroqApiKey] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
 
   // Real-time execution states
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeEvaluatingFieldId, setActiveEvaluatingFieldId] = useState<string | null>(null);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
 
-  // Load real profile from localStorage on mount
+  // Load real profile and Groq API key from localStorage on mount
   useEffect(() => {
     const loaded = loadUserProfile();
     setUserProfile(loaded);
+
+    try {
+      const savedKey = localStorage.getItem("formflow_groq_key");
+      if (savedKey) setGroqApiKey(savedKey);
+      const savedModel = localStorage.getItem("formflow_groq_model");
+      if (savedModel) setSelectedModel(savedModel);
+    } catch (e) {}
   }, []);
+
+  const handleSaveGroqApiKey = (key: string, model: string) => {
+    setGroqApiKey(key);
+    setSelectedModel(model);
+    try {
+      localStorage.setItem("formflow_groq_key", key);
+      localStorage.setItem("formflow_groq_model", model);
+    } catch (e) {}
+  };
 
   // Update field value manually
   const handleFieldChange = (fieldId: string, val: any) => {
@@ -64,19 +85,45 @@ export default function Home() {
     setIsProcessing(false);
   };
 
-  // Execute Wispr Dictated Prompt across ANY form
+  // Execute Wispr Dictated Prompt using Groq AI Llama 3.3 (or fallback)
   const handleExecutePrompt = async (promptText: string) => {
     setIsProcessing(true);
 
+    let groqResultsMap: Record<string, { value: any; reason: string }> = {};
+
+    // 1. If Groq API Key exists, call Groq Llama 3.3
+    if (groqApiKey && groqApiKey.startsWith("gsk_")) {
+      try {
+        const groqResp = await callGroqFormAgent({
+          apiKey: groqApiKey,
+          model: selectedModel,
+          spokenPrompt: promptText,
+          fields: activeForm.fields,
+          userProfile: userProfile,
+        });
+
+        groqResp.filledFields?.forEach((item) => {
+          groqResultsMap[item.id] = {
+            value: item.value,
+            reason: item.reason || "Synthesized by Groq Llama 3.3",
+          };
+        });
+      } catch (err) {
+        console.warn("Groq API error, falling back to local synthesizer:", err);
+      }
+    }
+
+    // 2. Animate filling through each field
     for (let i = 0; i < activeForm.fields.length; i++) {
       const field = activeForm.fields[i];
 
       // Highlight active evaluating field with amber ring
       setActiveEvaluatingFieldId(field.id);
-      await sleep(280);
+      await sleep(260);
 
-      // Match field to user's REAL profile + convert spoken slang/directives to polished writing
-      const result = matchFieldToRealUser(field, userProfile, promptText);
+      // Use Groq result if available, otherwise use local matcher
+      const groqVal = groqResultsMap[field.id];
+      const result = groqVal || matchFieldToRealUser(field, userProfile, promptText);
 
       // Apply result
       setActiveForm((prev) => ({
@@ -88,7 +135,7 @@ export default function Home() {
         ),
       }));
 
-      await sleep(220);
+      await sleep(180);
     }
 
     setActiveEvaluatingFieldId(null);
@@ -118,6 +165,9 @@ export default function Home() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         userName={userProfile.fullName}
+        groqApiKey={groqApiKey}
+        onSaveGroqApiKey={handleSaveGroqApiKey}
+        selectedModel={selectedModel}
       />
 
       {/* View 1: Beautiful Wispr Flow Style Landing Page */}
@@ -141,14 +191,14 @@ export default function Home() {
             defaultPrompt="Apply to this role with my primary profile, set notice period to 15 days, emphasize voice systems, and attach my resume."
           />
 
-          {/* Killer Feature 1: Pre-Flight ATS & Culture Radar */}
+          {/* Pre-Flight ATS & Culture Radar */}
           <AtsRadar
             formTitle={activeForm.title}
             filledFieldsCount={filledFieldsCount}
             totalFieldsCount={activeForm.fields.length}
           />
 
-          {/* Killer Feature 2: Spoken 1-Page PDF Generator */}
+          {/* Spoken 1-Page PDF Generator */}
           <SpokenPdfGenerator
             userProfile={userProfile}
             formTitle={activeForm.title}
@@ -169,7 +219,7 @@ export default function Home() {
             }}
           />
 
-          {/* Universal Form Scanner (Inspects Any Form) */}
+          {/* Universal Form Scanner (Supports Tally.so kdMWIZ, Google Forms, & any URL) */}
           <UniversalFormScanner
             activeForm={activeForm}
             onSetForm={setActiveForm}
@@ -191,7 +241,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* View 4: Universal Bookmarklet (Runs on Any Site on the Internet) */}
+      {/* View 4: Universal Bookmarklet (Runs directly on tally.so or any live website) */}
       {currentView === "bookmarklet" && (
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
           <BookmarkletGuide />
@@ -219,7 +269,7 @@ export default function Home() {
       {/* Minimalist Wispr Footer */}
       <footer className="border-t border-wispr-border py-8 text-center text-xs text-wispr-stone bg-wispr-cream">
         <p className="max-w-xl mx-auto">
-          FormFlow for Wispr Flow #NoHandsChallenge • Works with Wispr Flow desktop dictation on any web form • Zero cloud storage
+          FormFlow for Wispr Flow #NoHandsChallenge • Powered by Groq AI (Llama 3.3) & Wispr Voice • Zero cloud storage
         </p>
       </footer>
 
