@@ -8,6 +8,8 @@ import { UniversalFormScanner } from "@/components/UniversalFormScanner";
 import { RealProfileVault } from "@/components/RealProfileVault";
 import { BookmarkletGuide } from "@/components/BookmarkletGuide";
 import { SubmissionAudit } from "@/components/SubmissionAudit";
+import { AtsRadar } from "@/components/AtsRadar";
+import { SpokenPdfGenerator } from "@/components/SpokenPdfGenerator";
 import { UniversalForm, UniversalFormField, RealUserProfile } from "@/lib/types";
 import { loadUserProfile, saveUserProfile, initialRealUserProfile } from "@/lib/storage";
 import { createDefaultUniversalForm, matchFieldToRealUser } from "@/lib/universalParser";
@@ -104,6 +106,10 @@ export default function Home() {
     setIsAuditOpen(true);
   };
 
+  const filledFieldsCount = activeForm.fields.filter(
+    (f) => f.value !== "" && f.value !== false && f.status === "filled"
+  ).length;
+
   return (
     <div className="min-h-screen bg-wispr-cream text-wispr-ink flex flex-col font-sans">
       
@@ -133,6 +139,34 @@ export default function Home() {
             isProcessing={isProcessing}
             onResetForm={handleResetForm}
             defaultPrompt="Apply to this role with my primary profile, set notice period to 15 days, emphasize voice systems, and attach my resume."
+          />
+
+          {/* Killer Feature 1: Pre-Flight ATS & Culture Radar */}
+          <AtsRadar
+            formTitle={activeForm.title}
+            filledFieldsCount={filledFieldsCount}
+            totalFieldsCount={activeForm.fields.length}
+          />
+
+          {/* Killer Feature 2: Spoken 1-Page PDF Generator */}
+          <SpokenPdfGenerator
+            userProfile={userProfile}
+            formTitle={activeForm.title}
+            onAttachGeneratedPdf={(pdfName) => {
+              setActiveForm((prev) => ({
+                ...prev,
+                fields: prev.fields.map((f) =>
+                  f.type === "file" || f.id.includes("resume")
+                    ? {
+                        ...f,
+                        value: pdfName,
+                        status: "filled",
+                        filledReason: "Generated & attached by FormFlow PDF Synthesizer",
+                      }
+                    : f
+                ),
+              }));
+            }}
           />
 
           {/* Universal Form Scanner (Inspects Any Form) */}
