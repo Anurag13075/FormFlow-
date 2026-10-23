@@ -1,50 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-serif: 'Newsreader', 'Playfair Display', Georgia, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
-  background-color: #FAF8F5;
+  background-color: #F8F6EB;
   color: #141413;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* Custom tactile scrollbar */
+/* Custom tactile scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #FAF8F5;
+  background: #F8F6EB;
 }
 ::-webkit-scrollbar-thumb {
-  background: #DCD4C4;
+  background: #D8D2C2;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8A867D;
+  background: #8F8B80;
 }
 
-/* Custom animation keyframes */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
+/* Curved rotating ribbon text animation */
+@keyframes rotateRibbon {
+  0% {
+    transform: rotate(0deg);
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  100% {
+    transform: rotate(360deg);
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-spin-slow {
+  animation: rotateRibbon 35s linear infinite;
+}
+
+/* Audio waveform bars animation */
+@keyframes waveBarMotion {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 26px;
+  }
+}
+
+.wave-bar-anim {
+  animation: waveBarMotion 1.1s ease-in-out infinite;
+}
+
+/* Glass & tactile utility classes */
+.wispr-border {
+  border: 1.5px solid #141413;
+}
+
+.tactile-button {
+  border: 1.5px solid #141413;
+  box-shadow: 0 2px 0 0 #141413;
+  transition: all 0.15s ease-out;
+}
+
+.tactile-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 0 #141413;
+}
+
+.tactile-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 #141413;
 }

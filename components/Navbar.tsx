@@ -1,102 +1,122 @@
 "use client";
 
 import React from "react";
-import { Mic, ShieldCheck, Sparkles, FolderLock, ExternalLink } from "lucide-react";
+import { Sparkles, ShieldCheck, Globe, Bookmark, ArrowRight } from "lucide-react";
 
 interface NavbarProps {
-  activeTab: "agent" | "vault" | "audit";
-  setActiveTab: (tab: "agent" | "vault" | "audit") => void;
-  vaultDocCount: number;
-  personaName: string;
+  currentView: "landing" | "studio" | "vault" | "bookmarklet";
+  setCurrentView: (view: "landing" | "studio" | "vault" | "bookmarklet") => void;
+  userName: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  activeTab,
-  setActiveTab,
-  vaultDocCount,
-  personaName,
+  currentView,
+  setCurrentView,
+  userName,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-flow-border/70 bg-flow-cream/90 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-40 w-full border-b border-wispr-border bg-wispr-cream/90 backdrop-blur-md transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
-        {/* Brand identity */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab("agent")}>
-          <div className="w-9 h-9 rounded-full bg-flow-green text-flow-cream flex items-center justify-center shadow-tactile transition-transform hover:scale-105">
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2v20M17 5v14M7 8v8M2 11v2M22 11v2" />
-            </svg>
+        {/* Brand identity (Wispr ||| Flow logo mark) */}
+        <div
+          className="flex items-center space-x-2.5 cursor-pointer"
+          onClick={() => setCurrentView("landing")}
+        >
+          {/* 3 vertical bars logo */}
+          <div className="flex items-center space-x-1 px-1 h-5">
+            <span className="w-1 h-4 bg-wispr-ink rounded-full" />
+            <span className="w-1 h-5 bg-wispr-ink rounded-full" />
+            <span className="w-1 h-3.5 bg-wispr-ink rounded-full" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center space-x-1.5">
-              <span className="font-serif font-bold text-xl tracking-tight text-flow-ink">
-                FormFlow
-              </span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full bg-flow-green-light text-flow-green border border-flow-green/10">
-                Wispr Edition
-              </span>
-            </div>
-            <span className="text-[11px] text-flow-ink-muted -mt-0.5">
-              Voice-First Form & Document Agent
+          <div className="flex items-center space-x-1.5">
+            <span className="font-serif font-bold text-xl tracking-tight text-wispr-ink">
+              Flow
+            </span>
+            <span className="font-sans font-semibold text-xs px-2 py-0.5 rounded-full bg-wispr-sand text-wispr-ink border border-wispr-border">
+              Forms
             </span>
           </div>
         </div>
 
         {/* Wispr-style Segmented Control Pill */}
-        <div className="inline-flex items-center p-1 rounded-full bg-flow-sand/60 border border-flow-border/80 shadow-inner">
+        <div className="hidden sm:inline-flex items-center p-1 rounded-full bg-wispr-sand/70 border border-wispr-border shadow-inner">
           <button
-            onClick={() => setActiveTab("agent")}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === "agent"
-                ? "bg-flow-ink text-flow-cream shadow-tactile"
-                : "text-flow-ink-muted hover:text-flow-ink"
+            onClick={() => setCurrentView("landing")}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              currentView === "landing"
+                ? "bg-wispr-ink text-wispr-cream shadow-tactile"
+                : "text-wispr-ink-muted hover:text-wispr-ink"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Form Agent</span>
+            Landing
           </button>
 
           <button
-            onClick={() => setActiveTab("vault")}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === "vault"
-                ? "bg-flow-ink text-flow-cream shadow-tactile"
-                : "text-flow-ink-muted hover:text-flow-ink"
+            onClick={() => setCurrentView("studio")}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              currentView === "studio"
+                ? "bg-wispr-ink text-wispr-cream shadow-tactile"
+                : "text-wispr-ink-muted hover:text-wispr-ink"
             }`}
           >
-            <FolderLock className="w-3.5 h-3.5" />
-            <span>Persona Vault</span>
-            <span className="text-[10px] ml-1 px-1.5 py-0.2 rounded-full bg-flow-sand text-flow-ink font-semibold">
-              {vaultDocCount}
-            </span>
+            Form Studio
+          </button>
+
+          <button
+            onClick={() => setCurrentView("vault")}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              currentView === "vault"
+                ? "bg-wispr-ink text-wispr-cream shadow-tactile"
+                : "text-wispr-ink-muted hover:text-wispr-ink"
+            }`}
+          >
+            My Real Vault
+          </button>
+
+          <button
+            onClick={() => setCurrentView("bookmarklet")}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              currentView === "bookmarklet"
+                ? "bg-wispr-ink text-wispr-cream shadow-tactile"
+                : "text-wispr-ink-muted hover:text-wispr-ink"
+            }`}
+          >
+            Any-Web Bookmarklet
           </button>
         </div>
 
-        {/* Right side status badge */}
-        <div className="hidden md:flex items-center space-x-3">
-          <div
-            onClick={() => setActiveTab("vault")}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/70 border border-flow-border text-xs text-flow-ink cursor-pointer hover:bg-white transition-colors shadow-tactile"
+        {/* Right CTA / Status */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          
+          <button
+            onClick={() => setCurrentView("vault")}
+            className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white border border-wispr-border text-xs text-wispr-ink hover:bg-wispr-ivory transition-colors shadow-sm"
           >
-            <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-            <span className="font-medium text-flow-ink-muted">Profile:</span>
-            <span className="font-semibold text-flow-ink">{personaName}</span>
-          </div>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-wispr-stone font-medium">User:</span>
+            <span className="font-semibold text-wispr-ink truncate max-w-[100px]">
+              {userName}
+            </span>
+          </button>
 
-          <div className="h-4 w-[1px] bg-flow-border" />
+          {currentView !== "studio" ? (
+            <button
+              onClick={() => setCurrentView("studio")}
+              className="px-4 py-1.5 rounded-xl bg-wispr-lavender hover:bg-wispr-lavender-hover text-wispr-ink font-semibold text-xs tactile-button flex items-center space-x-1.5"
+            >
+              <span>Launch Studio</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setCurrentView("landing")}
+              className="px-4 py-1.5 rounded-xl bg-white border border-wispr-border text-wispr-ink font-semibold text-xs hover:bg-wispr-ivory transition-colors"
+            >
+              View Landing
+            </button>
+          )}
 
-          <div className="flex items-center space-x-1 text-xs text-flow-ink-muted font-medium">
-            <ShieldCheck className="w-4 h-4 text-flow-green" />
-            <span>Zero-Cloud Leakage</span>
-          </div>
         </div>
 
       </div>
